@@ -47,35 +47,52 @@ despesa adicionardespesa (){
     
     string inserir = "INSERT INTO despesas (nome, valor, categoria) VALUES('" + a.nome + "', " + to_string(a.valor) + ",'" + a.categoria + "');";
     sqlite3_exec(db, inserir.c_str(), nullptr, nullptr, nullptr);
+    //sqlite3_finalize(inserir);
     return a;
 }
 
 void printardespesa(){
     sqlite3_stmt* stmt;
     despesa d;
+    int i=0;
 
-    string sql = " SELECT nome, valor, categoria from despesas";
+    string sql = " SELECT  id, nome, valor, categoria from despesas";
     //.c_str foi usado pois o sqlite3 aceita apenas C, e como ssql é tipo string é necessario converter
     sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
 
-    while (sqlite3_step(stmt) == SQLITE_ROW){
+    
+      while (sqlite3_step(stmt) == SQLITE_ROW){
         //o const char* foi usado pois o sqlite3 apenas devolve em C, para adapatar para string em c++ se usa o  o const char*
 
+        int id = sqlite3_column_int(stmt, 0);
+
         const char* txtnome = (const char*)
-        sqlite3_column_text(stmt, 0);
+        sqlite3_column_text(stmt, 1);
         d.nome= txtnome;
 
-        d.valor = sqlite3_column_double(stmt, 1);
-
-       const char* txtcat = (const char*)
-       sqlite3_column_text(stmt, 2);
+        d.valor = sqlite3_column_double(stmt, 2);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+        const char* txtcat = (const char*)
+        sqlite3_column_text(stmt, 3);
         d.categoria = txtcat;
-        
-        cout<< "A despesa e: "<< d.nome<<" o valor: "<< d.valor<<" e a categoria: "<< d.categoria<< endl;
-   }
+        cout<< id << "- A despesa e: "<< d.nome<<" o valor: "<< d.valor<<" e a categoria: "<< d.categoria<< endl;
+
+     }
+ sqlite3_finalize(stmt);
 
 }
 
+
+// ciclo de vida: Prepare -> Bind -> Step -> Finalize.
+void excluirdespesa(int del){
+     sqlite3_stmt* stmt;
+     string excluir = " DELETE from despesas where id = ?";
+     sqlite3_prepare_v2( db, excluir.c_str(), -1, &stmt, nullptr );
+     sqlite3_bind_int( stmt, 1, del);
+     sqlite3_step (stmt);
+     sqlite3_finalize(stmt);
+     
+}
 
 int main(){
 
@@ -98,11 +115,24 @@ int main(){
             case(1):
                 adicionardespesa();
                 cout <<"Despesa adicionada com sucesso!"<< endl;
+               
                 break;
 
             case(2):
                 printardespesa();
                 break;
+
+            case(3): 
+            {
+             int del;
+             printardespesa(); 
+             cout<<"Digite qual o numero da despesa que voce quer excluir:"<< endl;
+             cin.ignore();
+             cin >>del;
+             excluirdespesa(del);
+             cout<< "Excluido com sucesso!"<< endl;
+            break;}
+
             case (0):
             break;
         }
